@@ -79,9 +79,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [102, 363]
+    coordinate: [124, 334]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: analog_sig_source_x_0
   id: analog_sig_source_x
   parameters:
@@ -119,7 +119,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [300, 203]
+    coordinate: [310, 203]
     rotation: 0
     state: disabled
 - name: blocks_add_const_vxx_1
@@ -137,7 +137,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [521, 303]
+    coordinate: [913, 419]
+    rotation: 0
+    state: true
+- name: blocks_repeat_0
+  id: blocks_repeat
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    interp: '140'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [249, 523]
     rotation: 0
     state: true
 - name: blocks_throttle_0
@@ -156,7 +174,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [342, 374]
+    coordinate: [323, 289]
     rotation: 0
     state: true
 - name: blocks_vco_f_0
@@ -174,9 +192,29 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [668, 340]
+    coordinate: [965, 218]
     rotation: 0
     state: enabled
+- name: blocks_vector_source_x_0
+  id: blocks_vector_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    repeat: 'True'
+    tags: '[]'
+    type: float
+    vector: (0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0,0,0,0,0,0,0)
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [83, 399]
+    rotation: 0
+    state: true
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -254,7 +292,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [860, 391]
+    coordinate: [1177, 301]
     rotation: 0
     state: true
 - name: qtgui_time_sink_x_0
@@ -351,7 +389,53 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [860, 196]
+    coordinate: [1159, 178]
+    rotation: 0
+    state: true
+- name: root_raised_cosine_filter_0
+  id: root_raised_cosine_filter
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.35'
+    comment: ''
+    decim: '1'
+    gain: '1'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ntaps: '222'
+    samp_rate: samp_rate
+    sym_rate: '1.0'
+    type: fir_filter_fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [430, 379]
+    rotation: 0
+    state: true
+- name: root_raised_cosine_filter_0_0
+  id: root_raised_cosine_filter
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '0.35'
+    comment: ''
+    decim: '1'
+    gain: '1'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ntaps: '222'
+    samp_rate: samp_rate
+    sym_rate: '1.0'
+    type: fir_filter_fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 379]
     rotation: 0
     state: true
 
@@ -361,9 +445,13 @@ connections:
 - [analog_sig_source_x_0, '0', blocks_add_const_vxx_0, '0']
 - [blocks_add_const_vxx_0, '0', blocks_throttle_0, '0']
 - [blocks_add_const_vxx_1, '0', blocks_vco_f_0, '0']
-- [blocks_throttle_0, '0', blocks_add_const_vxx_1, '0']
+- [blocks_repeat_0, '0', root_raised_cosine_filter_0, '0']
+- [blocks_throttle_0, '0', blocks_repeat_0, '0']
 - [blocks_vco_f_0, '0', qtgui_freq_sink_x_0, '0']
 - [blocks_vco_f_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_vector_source_x_0, '0', blocks_throttle_0, '0']
+- [root_raised_cosine_filter_0, '0', root_raised_cosine_filter_0_0, '0']
+- [root_raised_cosine_filter_0_0, '0', blocks_add_const_vxx_1, '0']
 
 metadata:
   file_format: 1

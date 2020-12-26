@@ -25,8 +25,8 @@ from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio.filter import firdes
 import sip
+from gnuradio import analog
 from gnuradio import blocks
-from gnuradio import filter
 from gnuradio import gr
 import sys
 import signal
@@ -78,22 +78,9 @@ class vco_test(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.root_raised_cosine_filter_0_0 = filter.fir_filter_fff(
-            1,
-            firdes.root_raised_cosine(
-                1,
-                samp_rate,
-                1.0,
-                0.35,
-                222))
-        self.root_raised_cosine_filter_0 = filter.fir_filter_fff(
-            1,
-            firdes.root_raised_cosine(
-                1,
-                samp_rate,
-                1.0,
-                0.35,
-                222))
+        self._const_range_range = Range(-10, 10, 0.001, 0, 200)
+        self._const_range_win = RangeWidget(self._const_range_range, self.set_const_range, 'const', "counter_slider", float)
+        self.top_grid_layout.addWidget(self._const_range_win)
         self.qtgui_time_sink_x_0 = qtgui.time_sink_f(
             1024, #size
             samp_rate, #samp_rate
@@ -182,28 +169,21 @@ class vco_test(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.pyqwidget(), Qt.QWidget)
         self.top_grid_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self._const_range_range = Range(-10, 10, 0.001, 0, 200)
-        self._const_range_win = RangeWidget(self._const_range_range, self.set_const_range, 'const', "counter_slider", float)
-        self.top_grid_layout.addWidget(self._const_range_win)
-        self.blocks_vector_source_x_0 = blocks.vector_source_f((0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0,0,0,0,0,0,0), True, 1, [])
         self.blocks_vco_f_0 = blocks.vco_f(samp_rate, 100000, 1)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_float*1, samp_rate,True)
-        self.blocks_repeat_0 = blocks.repeat(gr.sizeof_float*1, 140)
         self.blocks_add_const_vxx_1 = blocks.add_const_ff(5)
+        self.analog_const_source_x_0 = analog.sig_source_f(0, analog.GR_CONST_WAVE, 0, 0, const_range)
 
 
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.analog_const_source_x_0, 0), (self.blocks_throttle_0, 0))
         self.connect((self.blocks_add_const_vxx_1, 0), (self.blocks_vco_f_0, 0))
-        self.connect((self.blocks_repeat_0, 0), (self.root_raised_cosine_filter_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blocks_repeat_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_add_const_vxx_1, 0))
         self.connect((self.blocks_vco_f_0, 0), (self.qtgui_freq_sink_x_0, 0))
         self.connect((self.blocks_vco_f_0, 0), (self.qtgui_time_sink_x_0, 0))
-        self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_throttle_0, 0))
-        self.connect((self.root_raised_cosine_filter_0, 0), (self.root_raised_cosine_filter_0_0, 0))
-        self.connect((self.root_raised_cosine_filter_0_0, 0), (self.blocks_add_const_vxx_1, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "vco_test")
@@ -218,14 +198,13 @@ class vco_test(gr.top_block, Qt.QWidget):
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
-        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.samp_rate, 1.0, 0.35, 222))
-        self.root_raised_cosine_filter_0_0.set_taps(firdes.root_raised_cosine(1, self.samp_rate, 1.0, 0.35, 222))
 
     def get_const_range(self):
         return self.const_range
 
     def set_const_range(self, const_range):
         self.const_range = const_range
+        self.analog_const_source_x_0.set_offset(self.const_range)
 
 
 
