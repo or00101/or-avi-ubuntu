@@ -32,6 +32,27 @@ options:
     state: enabled
 
 blocks:
+- name: range1
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: kalit
+    min_len: '200'
+    orient: Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '1'
+    stop: '1'
+    value: '0'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 54]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
@@ -44,50 +65,191 @@ blocks:
     coordinate: [184, 12]
     rotation: 0
     state: enabled
-- name: epy_block_0
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '1000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: float
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [359, 200]
+    rotation: 0
+    state: true
+- name: blocks_multiply_const_vxx_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: range1
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [591, 311]
+    rotation: 0
+    state: true
+- name: epy_block_1
   id: epy_block
   parameters:
     _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
       \ GRC will instantiate the first class it finds\nto get ports and parameters\
       \ of your block. The arguments to __init__  will\nbe the parameters. All of\
       \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
-      from gnuradio import gr\nimport pyfirmata\nimport time\n\nfrom pyfirmata import\
-      \ util\n\n\n\nboard = pyfirmata.Arduino('/dev/ttyACM0') #\"connects\" the board\
-      \ to this code\n\nit = pyfirmata.util.Iterator(board)\nit.start()\n\nanalog_input\
-      \ = board.get_pin('a:1:i')\ndigital_output = board.get_pin('d:13:o')\nled =\
-      \ board.get_pin('d:11:p')\n\n\nclass blk(gr.sync_block):  # other base classes\
-      \ are basic_block, decim_block, interp_block\n    \"\"\"Embedded Python Block\
-      \ example - a simple multiply const\"\"\"\n    def __init__(self, example_param=1.0):\
+      from gnuradio import gr\nimport time\nimport pyfirmata\nfrom pyfirmata import\
+      \ util\n\nclass Amp_Driver:\n    def __init__(self, arduino_do_pin):\n     \
+      \   arduino = pyfirmata.Arduino(self.get_com_port())\n        self.it = pyfirmata.util.Iterator(arduino)\n\
+      \        self.it.start()\n\n        self.digital_output = arduino.get_pin(f\"\
+      d:{str(arduino_do_pin)}:o\")\n\n    def get_com_port(self):\n        return\
+      \ '/dev/ttyACM0'\n\n    def wake_up(self):\n        self.digital_output.write(0)\n\
+      \n    def shut_down(self):\n        self.digital_output.write(1)\n\nclass blk(gr.sync_block):\
+      \  # other base classes are basic_block, decim_block, interp_block\n    \"\"\
+      \"Embedded Python Block example - a simple multiply const\"\"\"\n    def __init__(self):\
       \  # only default arguments here\n        \"\"\"arguments to this function show\
-      \ up as parameters in GRC\"\"\"\n\t\tgr.sync_block.__init__(self, name='Arduino\
-      \ Try',   # will show up in GRC\n\t\tin_sig=[np.float32],\n        out_sig=[np.float32]\n\
-      \        )\n        # if an attribute with the same name as a parameter is found,\n\
-      \        # a callback is registered (properties work, too).\n\t\tself.example_param\
-      \ = example_param\n\n\tdef work(self, input_items, output_items):\n        \"\
-      \"\"example: multiply with constant\"\"\"\n\t\tif self.zeroInput(input_items):\n\
-      \t\t\tled.write(1)\n\t\tprint(input_items[0])\n\t\tdigital_output.write(1)\n\
-      \    \t#time.sleep(1)\n    \t#digital_output.write(0)\n    \t#time.sleep(1)\n\
-      \t\ttime.sleep(0.01)\n\t\toutput_items[0][:] = input_items[0] * self.example_param\n\
-      \t\treturn len(output_items[0])\n        \n        \n        \n\tdef zeroInput(self,\
-      \ input_items):\n\t\tfor i in range(len(input_items[0])):\n\t\t\tif input_items[0][i]!=0:\n\
-      \t\t\t\treturn False\n\t\treturn True\n\n\n\n\n\n    \n"
+      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(self, name='Arduino\
+      \ Driver embedded block',   # will show up in GRC\n        in_sig=[np.float32],\n\
+      \        out_sig=[np.float32]\n        )\n\n        self.amp_driver = Amp_Driver(13)\n\
+      \        \n\n    def work(self, input_items, output_items):\n        if self.is_input_all_zeros(input_items):\n\
+      \            self.amp_driver.shut_down()\n            output_items[0][:] = 0\
+      \ # When debugging this will allow us to plug this block's output  to a time\
+      \ sink and see if and when the driver woke up\n        else:\n            self.amp_driver.wake_up()\n\
+      \            output_items[0][:] = 1 # When debugging this will allow us to plug\
+      \ this block's output to a time sink and see if and when the driver shut down\n\
+      \n        return len(output_items[0])\n\n    def is_input_all_zeros(self, input_items):\n\
+      \        for i in range(len(input_items[0])):\n            if input_items[0][i]!=0:\n\
+      \                return False\n        return True\n\n\n"
     affinity: ''
     alias: ''
     comment: ''
-    example_param: '1.0'
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
-    _io_cache: ('Embedded Python Block', 'blk', [('example_param', '1.0')], [('0',
-      'complex', 1)], [('0', 'complex', 1)], 'Embedded Python Block example - a simple
-      multiply const', ['example_param'])
+    _io_cache: ('Arduino Driver embedded block', 'blk', [], [('0', 'float', 1)], [('0',
+      'float', 1)], 'Embedded Python Block example - a simple multiply const', [])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [665, 438]
+    coordinate: [790, 423]
     rotation: 0
     state: true
-connections: []
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1020, 224]
+    rotation: 0
+    state: true
+
+connections:
+- [analog_sig_source_x_0, '0', blocks_multiply_const_vxx_0, '0']
+- [blocks_multiply_const_vxx_0, '0', epy_block_1, '0']
+- [epy_block_1, '0', qtgui_time_sink_x_0, '0']
 
 metadata:
   file_format: 1
