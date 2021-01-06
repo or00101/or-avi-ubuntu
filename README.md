@@ -2,3 +2,7 @@
 
 It's best if we can keep this repository organized; For example:
 > "grc-vco" is a folder that contains "GNU Radio Companion" files that we used to test the "VCO".
+
+And:
+
+> "grc-fsk" is a folder that contains "GNU Radio Companion" files that we used to make an FSK-MOD.
