@@ -84,7 +84,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [359, 200]
+    coordinate: [273, 189]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -120,11 +120,11 @@ blocks:
       \ '/dev/ttyACM0'\n\n    def wake_up(self):\n        self.digital_output.write(0)\n\
       \n    def shut_down(self):\n        self.digital_output.write(1)\n\nclass blk(gr.sync_block):\
       \  # other base classes are basic_block, decim_block, interp_block\n    \"\"\
-      \"Embedded Python Block example - a simple multiply const\"\"\"\n    def __init__(self):\
-      \  # only default arguments here\n        \"\"\"arguments to this function show\
-      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(self, name='Arduino\
-      \ Driver embedded block',   # will show up in GRC\n        in_sig=[np.float32],\n\
-      \        out_sig=[np.float32]\n        )\n\n        self.amp_driver = Amp_Driver(13)\n\
+      \"Embedded Python Block example - a simple multiply const\"\"\"\n    def __init__(self,\
+      \ arduino_pin=12):  # only default arguments here\n        \"\"\"arguments to\
+      \ this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(self,\
+      \ name='Arduino Driver embedded block',   # will show up in GRC\n        in_sig=[np.float32],\n\
+      \        out_sig=[np.float32]\n        )\n\n        self.amp_driver = Amp_Driver(arduino_pin)\n\
       \        \n\n    def work(self, input_items, output_items):\n        if self.is_input_all_zeros(input_items):\n\
       \            self.amp_driver.shut_down()\n            output_items[0][:] = 0\
       \ # When debugging this will allow us to plug this block's output  to a time\
@@ -136,12 +136,14 @@ blocks:
       \                return False\n        return True\n\n\n"
     affinity: ''
     alias: ''
+    arduino_pin: '8'
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
-    _io_cache: ('Arduino Driver embedded block', 'blk', [], [('0', 'float', 1)], [('0',
-      'float', 1)], 'Embedded Python Block example - a simple multiply const', [])
+    _io_cache: ('Arduino Driver embedded block', 'blk', [('arduino_pin', '12')], [('0',
+      'float', 1)], [('0', 'float', 1)], 'Embedded Python Block example - a simple
+      multiply const', [])
     bus_sink: false
     bus_source: false
     bus_structure: null

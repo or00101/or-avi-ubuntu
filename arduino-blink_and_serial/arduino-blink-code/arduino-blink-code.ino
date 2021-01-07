@@ -1,4 +1,4 @@
-#define LED 13
+#define LED 8
 //#define IN 8
 #define BAUD_RATE 9600
 

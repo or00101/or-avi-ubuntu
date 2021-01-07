@@ -1,0 +1,123 @@
+options:
+  parameters:
+    author: Or Talisman and Avi Pezo
+    category: PTT
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: hb
+    hier_block_src_path: '.:'
+    id: ptt_arduino_block
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: PTT Arduino
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [787, 231]
+    rotation: 0
+    state: true
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
+      from gnuradio import gr\nimport time\nimport pyfirmata\nfrom pyfirmata import\
+      \ util\n\nclass Amp_Driver:\n    def __init__(self, arduino_do_pin):\n     \
+      \   arduino = pyfirmata.Arduino(self.get_com_port())\n        self.it = pyfirmata.util.Iterator(arduino)\n\
+      \        self.it.start()\n\n        self.digital_output = arduino.get_pin(f\"\
+      d:{str(arduino_do_pin)}:o\")\n\n    def get_com_port(self):\n        return\
+      \ '/dev/ttyACM0'\n\n    def wake_up(self):\n        self.digital_output.write(0)\n\
+      \n    def shut_down(self):\n        self.digital_output.write(1)\n\nclass blk(gr.sync_block):\
+      \  # other base classes are basic_block, decim_block, interp_block\n    \"\"\
+      \"Embedded Python Block example - a simple multiply const\"\"\"\n    def __init__(self,\
+      \ arduino_pin=12):  # only default arguments here\n        \"\"\"arguments to\
+      \ this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(self,\
+      \ name='Arduino Driver embedded block',   # will show up in GRC\n        in_sig=[np.byte],\n\
+      \        out_sig=[np.byte]\n        )\n\n        self.amp_driver = Amp_Driver(arduino_pin)\n\
+      \        \n\n    def work(self, input_items, output_items):\n        if self.is_input_all_zeros(input_items):\n\
+      \            self.amp_driver.shut_down()\n            output_items[0][:] = 0\
+      \ # When debugging this will allow us to plug this block's output  to a time\
+      \ sink and see if and when the driver woke up\n        else:\n            self.amp_driver.wake_up()\n\
+      \            output_items[0][:] = 1 # When debugging this will allow us to plug\
+      \ this block's output to a time sink and see if and when the driver shut down\n\
+      \n        return len(output_items[0])\n\n    def is_input_all_zeros(self, input_items):\n\
+      \        for i in range(len(input_items[0])):\n            if input_items[0][i]\
+      \ != 0:\n                return False\n        return True\n\n\n"
+    affinity: ''
+    alias: ''
+    arduino_pin: '8'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Arduino Driver embedded block', 'blk', [('arduino_pin', '12')], [('0',
+      'byte', 1)], [('0', 'byte', 1)], 'Embedded Python Block example - a simple multiply
+      const', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [411, 223]
+    rotation: 0
+    state: true
+- name: pad_source_0
+  id: pad_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    label: in
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_streams: '1'
+    optional: 'False'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [156, 222]
+    rotation: 0
+    state: true
+
+connections:
+- [epy_block_0, '0', blocks_null_sink_0, '0']
+- [pad_source_0, '0', epy_block_0, '0']
+
+metadata:
+  file_format: 1
